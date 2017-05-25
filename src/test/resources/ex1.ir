@@ -1,0 +1,22 @@
+declare i32 @putchar(i32)
+
+@F = constant i32 70
+
+define i32 @add(i32 %a, i32 %b) {
+  %1 = add i32 %a, %b
+  ret i32 %1
+}
+
+define void @main() {  
+  %1 = call i32 @add(i32 0, i32 97)
+  call i32 @putchar(i32 70)
+  call i32 @putchar(i32 101)
+  call i32 @putchar(i32 100)
+  call i32 @putchar(i32 101)
+  call i32 @putchar(i32 114)
+  call i32 @putchar(i32 105)
+  call i32 @putchar(i32 99)
+  call i32 @putchar(i32 111)
+  call i32 @putchar(i32 10)
+  ret void
+}

@@ -1,0 +1,8 @@
+@stringConst0 = private unnamed_addr constant [32 x i8] c"Hello, Federico, You rocks!!!!\0A\00", align 1
+
+define i32 @main(i32, i8**) #0 {
+     %_ = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([32 x i8], [32 x i8]* @stringConst0, i32 0, i32 0))
+     ret i32 0
+}
+
+declare i32 @printf(i8*, ...)
