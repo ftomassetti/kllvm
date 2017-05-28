@@ -11,8 +11,11 @@ target triple = "x86_64-apple-macosx10.12.0"
 @.str = private unnamed_addr constant [8 x i8] c"%s: %s\0A\00", align 1
 @.str.1 = private unnamed_addr constant [13 x i8] c"empty string\00", align 1
 @.str.2 = private unnamed_addr constant [13 x i8] c"not a number\00", align 1
-@.str.3 = private unnamed_addr constant [21 x i8] c"Converting %s to %f\0A\00", align 1
-@.str.4 = private unnamed_addr constant [4 x i8] c"foo\00", align 1
+@.str.3 = private unnamed_addr constant [8 x i8] c"input a\00", align 1
+@.str.4 = private unnamed_addr constant [13 x i8] c"input a: %d\0A\00", align 1
+@.str.5 = private unnamed_addr constant [8 x i8] c"input b\00", align 1
+@.str.6 = private unnamed_addr constant [13 x i8] c"input b: %f\0A\00", align 1
+@.str.7 = private unnamed_addr constant [13 x i8] c"input c: %s\0A\00", align 1
 
 ; Function Attrs: nounwind ssp uwtable
 define void @error(i8*, i8*) #0 {
@@ -231,18 +234,33 @@ define i32 @main(i32, i8**) #0 {
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   %5 = alloca i8**, align 8
+  %6 = alloca i32, align 4
+  %7 = alloca float, align 4
+  %8 = alloca i8*, align 8
   store i32 0, i32* %3, align 4
   store i32 %0, i32* %4, align 4
   store i8** %1, i8*** %5, align 8
-  %6 = load i8**, i8*** %5, align 8
-  %7 = getelementptr inbounds i8*, i8** %6, i64 1
-  %8 = load i8*, i8** %7, align 8
   %9 = load i8**, i8*** %5, align 8
   %10 = getelementptr inbounds i8*, i8** %9, i64 1
   %11 = load i8*, i8** %10, align 8
-  %12 = call float @parseFloat(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.4, i32 0, i32 0), i8* %11)
-  %13 = fpext float %12 to double
-  %14 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([21 x i8], [21 x i8]* @.str.3, i32 0, i32 0), i8* %8, double %13)
+  %12 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @.str.3, i32 0, i32 0), i8* %11)
+  store i32 %12, i32* %6, align 4
+  %13 = load i32, i32* %6, align 4
+  %14 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @.str.4, i32 0, i32 0), i32 %13)
+  %15 = load i8**, i8*** %5, align 8
+  %16 = getelementptr inbounds i8*, i8** %15, i64 2
+  %17 = load i8*, i8** %16, align 8
+  %18 = call float @parseFloat(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @.str.5, i32 0, i32 0), i8* %17)
+  store float %18, float* %7, align 4
+  %19 = load float, float* %7, align 4
+  %20 = fpext float %19 to double
+  %21 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @.str.6, i32 0, i32 0), double %20)
+  %22 = load i8**, i8*** %5, align 8
+  %23 = getelementptr inbounds i8*, i8** %22, i64 3
+  %24 = load i8*, i8** %23, align 8
+  store i8* %24, i8** %8, align 8
+  %25 = load i8*, i8** %8, align 8
+  %26 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @.str.7, i32 0, i32 0), i8* %25)
   ret i32 0
 }
 

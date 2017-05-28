@@ -1,3 +1,5 @@
+@stringConst4 = private unnamed_addr constant [8 x i8] c"Input e\00", align 1
+@stringConst3 = private unnamed_addr constant [8 x i8] c"Input d\00", align 1
 @stringConst0 = private unnamed_addr constant [22 x i8] c"Number of args is KO\0A\00", align 1
 @stringConst2 = private unnamed_addr constant [8 x i8] c"Input a\00", align 1
 @stringConst1 = private unnamed_addr constant [22 x i8] c"Number of args is OK\0A\00", align 1
@@ -214,7 +216,9 @@ define i32 @main(i32, i8**) #0 {
     %input_a = alloca i32
     %input_b = alloca float
     %input_c = alloca i8*
-    %comparison = icmp ne i32 %0,  4
+    %input_d = alloca i32
+    %input_e = alloca i32
+    %comparison = icmp ne i32 %0,  6
     br i1 %comparison, label %errorArgs, label %ok
     errorArgs:
     call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([22 x i8], [22 x i8]* @stringConst0, i32 0, i32 0))
@@ -225,6 +229,14 @@ define i32 @main(i32, i8**) #0 {
     %tmp_input_a_2 = load i8*, i8** %tmp_input_a_1
     %tmp_input_a_3 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst2, i32 0, i32 0), i8* %tmp_input_a_2)
     store i32 %tmp_input_a_3, i32* %input_a
+    %tmp_input_d_1 = getelementptr inbounds i8*, i8** %1, i64 4
+    %tmp_input_d_2 = load i8*, i8** %tmp_input_d_1
+    %tmp_input_d_3 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst3, i32 0, i32 0), i8* %tmp_input_d_2)
+    store i32 %tmp_input_d_3, i32* %input_d
+    %tmp_input_e_1 = getelementptr inbounds i8*, i8** %1, i64 5
+    %tmp_input_e_2 = load i8*, i8** %tmp_input_e_1
+    %tmp_input_e_3 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst4, i32 0, i32 0), i8* %tmp_input_e_2)
+    store i32 %tmp_input_e_3, i32* %input_e
     ret i32 0
 }
 

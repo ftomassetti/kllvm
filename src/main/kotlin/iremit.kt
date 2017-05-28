@@ -190,13 +190,22 @@ class IRCode {
     }
 }
 
+fun IRCode.parseIntInput(inputName: String, index: Int) {
+    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "1"), IntConst(index + 1, I64Type))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "tmp_input_${inputName}_1"))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_3", Call(I32Type, "parseInt",
+            this.stringConstForContent("Input $inputName").reference(),
+            ValueRef(Pointer(I8Type), "tmp_input_${inputName}_2"))))
+    this.addInstruction(Store(ValueRef(I32Type, "tmp_input_${inputName}_3"), ValueRef(Pointer(I32Type), "input_$inputName")))
+}
+
 fun main(args: Array<String>) {
     val irBuilder = IRCode()
     //val exitLabel = irBuilder.getLabel("exit")
     val errorArgsLabel = irBuilder.getLabel("errorArgs")
     val okLabel = irBuilder.getLabel("ok")
 
-    irBuilder.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef(I32Type, "0"), IntConst(4))))
+    irBuilder.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef(I32Type, "0"), IntConst(6))))
     irBuilder.addInstruction(IfInstruction(ValueRef(BooleanType, "comparison"), errorArgsLabel, okLabel))
 
     irBuilder.addInstruction(PlaceLabel(errorArgsLabel))
@@ -208,20 +217,14 @@ fun main(args: Array<String>) {
     val inputA = irBuilder.addVariable(I32Type, "input_a")
     val inputB = irBuilder.addVariable(FloatType, "input_b")
     val inputC = irBuilder.addVariable(Pointer(I8Type), "input_c")
+    val inputD = irBuilder.addVariable(I32Type, "input_d")
+    val inputE = irBuilder.addVariable(I32Type, "input_e")
 
     irBuilder.addInstruction(Printf(irBuilder.stringConstForContent("Number of args is OK\n")))
 
-    irBuilder.addInstruction(TempValue("tmp_input_a_1", GetElementPtr(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "1"), IntConst(1, I64Type))))
-    irBuilder.addInstruction(TempValue("tmp_input_a_2", Load(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "tmp_input_a_1"))))
-    irBuilder.addInstruction(TempValue("tmp_input_a_3", Call(I32Type, "parseInt",
-            irBuilder.stringConstForContent("Input a").reference(),
-            ValueRef(Pointer(I8Type), "tmp_input_a_2"))))
-    irBuilder.addInstruction(Store(ValueRef(I32Type, "tmp_input_a_3"), ValueRef(Pointer(I32Type), "input_a")))
-
-    //%tmp1 = getelementptr inbounds i8*, i8** %1, i64 1
-    //%tmp2 = load i8*, i8** %tmp1, align 8
-    //%tmp3 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst2, i32 0, i32 0), i8* %tmp2)
-    //store i32 %tmp3, i32* %input_a, align 4
+    irBuilder.parseIntInput("a", 0)
+    irBuilder.parseIntInput("d", 3)
+    irBuilder.parseIntInput("e", 4)
 
     irBuilder.addInstruction(ReturnInt(0))
     val ir = irBuilder.asString()
