@@ -234,6 +234,9 @@ define i32 @main(i32, i8**) #0 {
     %tmp_input_b_2 = load i8*, i8** %tmp_input_b_1
     %tmp_input_b_3 = call float @parseFloat(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst3, i32 0, i32 0), i8* %tmp_input_b_2)
     store float %tmp_input_b_3, float* %input_b
+    %tmp_input_c_1 = getelementptr inbounds i8*, i8** %1, i64 3
+    %tmp_input_c_2 = load i8*, i8** %tmp_input_c_1
+    store i8* %tmp_input_c_2, i8** %input_c
     %tmp_input_d_1 = getelementptr inbounds i8*, i8** %1, i64 4
     %tmp_input_d_2 = load i8*, i8** %tmp_input_d_1
     %tmp_input_d_3 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst4, i32 0, i32 0), i8* %tmp_input_d_2)
@@ -242,6 +245,8 @@ define i32 @main(i32, i8**) #0 {
     %tmp_input_e_2 = load i8*, i8** %tmp_input_e_1
     %tmp_input_e_3 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst5, i32 0, i32 0), i8* %tmp_input_e_2)
     store i32 %tmp_input_e_3, i32* %input_e
+    %tmpValue0 = load i8*, i8** %input_c
+    call i32 (i8*, ...) @printf(i8* %tmpValue0)
     ret i32 0
 }
 

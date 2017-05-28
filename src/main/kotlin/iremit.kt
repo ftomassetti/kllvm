@@ -20,7 +20,6 @@ data class StringConst(val id: String, val content: String) {
 
 class StringReference(val stringConst: StringConst) : Value {
     override fun IRCode() = "i8* getelementptr inbounds ([${stringConst.length()} x i8], [${stringConst.length()} x i8]* @${stringConst.id}, i32 0, i32 0)"
-
 }
 
 interface Instruction {
@@ -29,13 +28,6 @@ interface Instruction {
 
 interface ValueInstruction : Instruction {
     val id: String
-}
-
-class Printf(val message: StringConst) : Instruction {
-
-    override fun IRCode(): String {
-        return "call i32 (i8*, ...) @printf(${message.IRPointerReference()})"
-    }
 }
 
 class ReturnInt(val value: Int) : Instruction {
@@ -84,8 +76,8 @@ data class Pointer(val element: Type) : Type {
     override fun IRCode() = "${element.IRCode()}*"
 }
 
-data class ValueRef(val type: Type, val name: String) : Value {
-    override fun IRCode() = "${type.IRCode()} %$name"
+data class ValueRef(val name: String, val type: Type? = null) : Value {
+    override fun IRCode() = "${type?.IRCode() ?: ""} %$name"
 }
 
 class IfInstruction(val condition: Value, val yesLabel: Label, val noLabel: Label) : Instruction {
@@ -108,7 +100,6 @@ data class Comparison(val comparisonType: ComparisonType, val left: Value, val r
 
 class TempValue(val name: String, val instruction: Instruction) : Instruction {
     override fun IRCode(): String = "%$name = ${instruction.IRCode()}"
-
 }
 
 class IntConst(val value: Int, val type: Type? = null) : Value {
@@ -136,6 +127,13 @@ class Call(val returnType: Type, val name: String, vararg params: Value) : Value
     }
 }
 
+class Printf(val value: Value) : Instruction {
+
+    override fun IRCode(): String {
+        return "call i32 (i8*, ...) @printf(${value.IRCode()})"
+    }
+}
+
 
 class Variable(val type: Type, val name: String) {
     fun allocCode() = "%$name = alloca ${type.IRCode()}"
@@ -147,6 +145,13 @@ class IRCode {
     private val mainInstructions = LinkedList<Instruction>()
     private val labels = HashMap<String, Label>()
     private val variables = LinkedList<Variable>()
+    private var nextTmpIndex = 0
+
+    fun tempValue(value: Instruction) : TempValue{
+        val tempValue = TempValue("tmpValue${nextTmpIndex++}", value)
+        addInstruction(tempValue)
+        return tempValue
+    }
 
     fun getLabel(name: String) : Label {
         if (!labels.containsKey(name)) {
@@ -191,21 +196,27 @@ class IRCode {
 }
 
 fun IRCode.parseIntInput(inputName: String, index: Int) {
-    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "1"), IntConst(index + 1, I64Type))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "tmp_input_${inputName}_1"))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
     this.addInstruction(TempValue("tmp_input_${inputName}_3", Call(I32Type, "parseInt",
             this.stringConstForContent("Input $inputName").reference(),
-            ValueRef(Pointer(I8Type), "tmp_input_${inputName}_2"))))
-    this.addInstruction(Store(ValueRef(I32Type, "tmp_input_${inputName}_3"), ValueRef(Pointer(I32Type), "input_$inputName")))
+            ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)))))
+    this.addInstruction(Store(ValueRef("tmp_input_${inputName}_3", I32Type), ValueRef("input_$inputName", Pointer(I32Type))))
 }
 
 fun IRCode.parseFloatInput(inputName: String, index: Int) {
-    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "1"), IntConst(index + 1, I64Type))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "tmp_input_${inputName}_1"))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
     this.addInstruction(TempValue("tmp_input_${inputName}_3", Call(FloatType, "parseFloat",
             this.stringConstForContent("Input $inputName").reference(),
-            ValueRef(Pointer(I8Type), "tmp_input_${inputName}_2"))))
-    this.addInstruction(Store(ValueRef(FloatType, "tmp_input_${inputName}_3"), ValueRef(Pointer(FloatType), "input_$inputName")))
+            ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)))))
+    this.addInstruction(Store(ValueRef("tmp_input_${inputName}_3", FloatType), ValueRef("input_$inputName", Pointer(FloatType))))
+}
+
+fun IRCode.saveStringInput(inputName: String, index: Int) {
+    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
+    this.addInstruction(Store(ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)), ValueRef("input_$inputName", Pointer(Pointer(I8Type)))))
 }
 
 fun main(args: Array<String>) {
@@ -214,11 +225,11 @@ fun main(args: Array<String>) {
     val errorArgsLabel = irBuilder.getLabel("errorArgs")
     val okLabel = irBuilder.getLabel("ok")
 
-    irBuilder.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef(I32Type, "0"), IntConst(6))))
-    irBuilder.addInstruction(IfInstruction(ValueRef(BooleanType, "comparison"), errorArgsLabel, okLabel))
+    irBuilder.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef("0", I32Type), IntConst(6))))
+    irBuilder.addInstruction(IfInstruction(ValueRef("comparison", BooleanType), errorArgsLabel, okLabel))
 
     irBuilder.addInstruction(PlaceLabel(errorArgsLabel))
-    irBuilder.addInstruction(Printf(irBuilder.stringConstForContent("Number of args is KO\n")))
+    irBuilder.addInstruction(Printf(irBuilder.stringConstForContent("Number of args is KO\n").reference()))
     irBuilder.addInstruction(ReturnInt(1))
 
     irBuilder.addInstruction(PlaceLabel(okLabel))
@@ -229,12 +240,16 @@ fun main(args: Array<String>) {
     val inputD = irBuilder.addVariable(I32Type, "input_d")
     val inputE = irBuilder.addVariable(I32Type, "input_e")
 
-    irBuilder.addInstruction(Printf(irBuilder.stringConstForContent("Number of args is OK\n")))
+    irBuilder.addInstruction(Printf(irBuilder.stringConstForContent("Number of args is OK\n").reference()))
 
     irBuilder.parseIntInput("a", 0)
     irBuilder.parseFloatInput("b", 1)
+    irBuilder.saveStringInput("c", 2)
     irBuilder.parseIntInput("d", 3)
     irBuilder.parseIntInput("e", 4)
+
+    val inputCAccess = irBuilder.tempValue(Load(Pointer(I8Type), ValueRef("input_c", Pointer(Pointer(I8Type)))))
+    irBuilder.addInstruction(Printf(ValueRef(inputCAccess.name, Pointer(I8Type))))
 
     irBuilder.addInstruction(ReturnInt(0))
     val ir = irBuilder.asString()
