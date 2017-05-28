@@ -1,0 +1,15 @@
+@stringConst0 = private unnamed_addr constant [22 x i8] c"Number of args is KO\0A\00", align 1
+@stringConst1 = private unnamed_addr constant [22 x i8] c"Number of args is OK\0A\00", align 1
+
+define i32 @main(i32, i8**) #0 {
+    %comparison = icmp ne i32 %0, 2
+    br i1 %comparison, label %errorArgs, label %ok
+    errorArgs:
+    %printf_0 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([22 x i8], [22 x i8]* @stringConst0, i32 0, i32 0))
+    ret i32 1
+    ok:
+    %printf_1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([22 x i8], [22 x i8]* @stringConst1, i32 0, i32 0))
+    ret i32 0
+}
+
+declare i32 @printf(i8*, ...)
