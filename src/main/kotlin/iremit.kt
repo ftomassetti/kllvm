@@ -199,6 +199,15 @@ fun IRCode.parseIntInput(inputName: String, index: Int) {
     this.addInstruction(Store(ValueRef(I32Type, "tmp_input_${inputName}_3"), ValueRef(Pointer(I32Type), "input_$inputName")))
 }
 
+fun IRCode.parseFloatInput(inputName: String, index: Int) {
+    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "1"), IntConst(index + 1, I64Type))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "tmp_input_${inputName}_1"))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_3", Call(FloatType, "parseFloat",
+            this.stringConstForContent("Input $inputName").reference(),
+            ValueRef(Pointer(I8Type), "tmp_input_${inputName}_2"))))
+    this.addInstruction(Store(ValueRef(FloatType, "tmp_input_${inputName}_3"), ValueRef(Pointer(FloatType), "input_$inputName")))
+}
+
 fun main(args: Array<String>) {
     val irBuilder = IRCode()
     //val exitLabel = irBuilder.getLabel("exit")
@@ -223,6 +232,7 @@ fun main(args: Array<String>) {
     irBuilder.addInstruction(Printf(irBuilder.stringConstForContent("Number of args is OK\n")))
 
     irBuilder.parseIntInput("a", 0)
+    irBuilder.parseFloatInput("b", 1)
     irBuilder.parseIntInput("d", 3)
     irBuilder.parseIntInput("e", 4)
 
