@@ -47,6 +47,11 @@ float parseFloat(char * inputName, char* s) {
 }
 
 int main(int argc, char* argv[]) {
-	printf("Converting %s to %f\n", argv[1], parseFloat("foo", argv[1]));
+	int input_a = parseInt("input a", argv[1]);
+	printf("input a: %d\n", input_a);
+	float input_b = parseFloat("input b", argv[2]);
+	printf("input b: %f\n", input_b);
+	char* input_c = argv[3];
+	printf("input c: %s\n", input_c);
 	return 0;
 }

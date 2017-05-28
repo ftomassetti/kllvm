@@ -15,6 +15,12 @@ data class StringConst(val id: String, val content: String) {
     fun IRPointerReference() : String {
         return "i8* getelementptr inbounds ([${length()} x i8], [${length()} x i8]* @$id, i32 0, i32 0)"
     }
+    fun reference() = StringReference(this)
+}
+
+class StringReference(val stringConst: StringConst) : Value {
+    override fun IRCode() = "i8* getelementptr inbounds ([${stringConst.length()} x i8], [${stringConst.length()} x i8]* @${stringConst.id}, i32 0, i32 0)"
+
 }
 
 interface Instruction {
@@ -25,18 +31,10 @@ interface ValueInstruction : Instruction {
     val id: String
 }
 
-class Printf(val message: StringConst) : ValueInstruction {
-    companion object {
-        var nextN = 0
-    }
-
-    private val n: Int = nextN++
-
-    override val id: String
-        get() = "printf_$n"
+class Printf(val message: StringConst) : Instruction {
 
     override fun IRCode(): String {
-        return "%$id = call i32 (i8*, ...) @printf(${message.IRPointerReference()})"
+        return "call i32 (i8*, ...) @printf(${message.IRPointerReference()})"
     }
 }
 
@@ -48,6 +46,10 @@ data class Label(val name: String)
 
 class PlaceLabel(val label: Label) : Instruction {
     override fun IRCode() = "${label.name}:"
+}
+
+class Load(val type: Type, val value: Value) : Instruction {
+    override fun IRCode() = "load ${type.IRCode()}, ${value.IRCode()}"
 }
 
 interface Value {
@@ -62,8 +64,24 @@ object BooleanType : Type {
     override fun IRCode() = "i1"
 }
 
-object IntType : Type {
+object I8Type : Type {
+    override fun IRCode() = "i8"
+}
+
+object I32Type : Type {
     override fun IRCode() = "i32"
+}
+
+object I64Type : Type {
+    override fun IRCode() = "i64"
+}
+
+object FloatType : Type {
+    override fun IRCode() = "float"
+}
+
+data class Pointer(val element: Type) : Type {
+    override fun IRCode() = "${element.IRCode()}*"
 }
 
 data class ValueRef(val type: Type, val name: String) : Value {
@@ -93,19 +111,34 @@ class TempValue(val name: String, val instruction: Instruction) : Instruction {
 
 }
 
-class IntConst(val value: Int) : Value {
-    override fun IRCode(): String = "$value"
+class IntConst(val value: Int, val type: Type? = null) : Value {
+    override fun IRCode(): String = "${type?.IRCode() ?: ""} $value"
 
 }
 
-class Store(val type: Type, val value: Value, val destination: Value) : Instruction {
+class Store(val value: Value, val destination: Value) : Instruction {
     override fun IRCode(): String {
-        return "store ${type.IRCode()} ${value.IRCode()}, ${type.IRCode()}* ${destination.IRCode()}"
+        return "store ${value.IRCode()}, ${destination.IRCode()}"
     }
 }
 
-class GetElementPtr(val type: Type, val pointer: Value, val index: Value) : Value {
-    override fun IRCode() = "getelementptr inbounds ${type.IRCode()}, ${type.IRCode()}* ${pointer.IRCode()}, ${index.IRCode()}"
+class GetElementPtr(val type: Type, val pointer: Value, val index: Value) : Value, Instruction {
+    override fun IRCode() = "getelementptr inbounds ${type.IRCode()}, ${pointer.IRCode()}, ${index.IRCode()}"
+}
+
+class Call(val returnType: Type, val name: String, vararg params: Value) : Value, Instruction {
+    private var _params : MutableList<Value> = LinkedList<Value>()
+    init {
+        params.forEach { _params.add(it) }
+    }
+    override fun IRCode(): String {
+        return "call ${returnType.IRCode()} @$name(${_params.map { it.IRCode() }.joinToString(separator = ", ")})"
+    }
+}
+
+
+class Variable(val type: Type, val name: String) {
+    fun allocCode() = "%$name = alloca ${type.IRCode()}"
 }
 
 class IRCode {
@@ -113,12 +146,19 @@ class IRCode {
     private val stringConsts = HashMap<String, StringConst>()
     private val mainInstructions = LinkedList<Instruction>()
     private val labels = HashMap<String, Label>()
+    private val variables = LinkedList<Variable>()
 
     fun getLabel(name: String) : Label {
         if (!labels.containsKey(name)) {
             labels[name] = Label(name)
         }
         return labels[name]!!
+    }
+
+    fun addVariable(type: Type, name: String) : Variable {
+        val variable = Variable(type, name)
+        variables.add(variable)
+        return variable
     }
 
     fun addInstruction(instruction: Instruction) {
@@ -133,13 +173,20 @@ class IRCode {
     }
 
     fun asString() : String {
-        return """${stringConsts.values.map { it.IRDeclaration() }.joinToString(separator = "\n")}
+        return """|${stringConsts.values.map { it.IRDeclaration() }.joinToString(separator = "\n")}
+                  |
+                  |${IRCode::class.java.getResource("/constants.ir").readText()}
+                  |${IRCode::class.java.getResource("/error.ir").readText()}
+                  |${IRCode::class.java.getResource("/parseInt.ir").readText()}
+                  |${IRCode::class.java.getResource("/parseFloat.ir").readText()}
                   |
                   |define i32 @main(i32, i8**) #0 {
+                  |    ${variables.map { it.allocCode() }.joinToString(separator = "\n    ")}
                   |    ${mainInstructions.map { it.IRCode() }.joinToString(separator = "\n    ")}
                   |}
                   |
-                  |declare i32 @printf(i8*, ...)""".trimMargin("|")
+                  |${IRCode::class.java.getResource("/importedDeclarations.ir").readText()}
+                  |""".trimMargin("|")
     }
 }
 
@@ -149,7 +196,7 @@ fun main(args: Array<String>) {
     val errorArgsLabel = irBuilder.getLabel("errorArgs")
     val okLabel = irBuilder.getLabel("ok")
 
-    irBuilder.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef(IntType, "0"), IntConst(2))))
+    irBuilder.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef(I32Type, "0"), IntConst(4))))
     irBuilder.addInstruction(IfInstruction(ValueRef(BooleanType, "comparison"), errorArgsLabel, okLabel))
 
     irBuilder.addInstruction(PlaceLabel(errorArgsLabel))
@@ -157,9 +204,25 @@ fun main(args: Array<String>) {
     irBuilder.addInstruction(ReturnInt(1))
 
     irBuilder.addInstruction(PlaceLabel(okLabel))
+
+    val inputA = irBuilder.addVariable(I32Type, "input_a")
+    val inputB = irBuilder.addVariable(FloatType, "input_b")
+    val inputC = irBuilder.addVariable(Pointer(I8Type), "input_c")
+
     irBuilder.addInstruction(Printf(irBuilder.stringConstForContent("Number of args is OK\n")))
-    //irBuilder.addInstruction(JumpInstruction(exitLabel))
-    //irBuilder.addInstruction(PlaceLabel(exitLabel))
+
+    irBuilder.addInstruction(TempValue("tmp_input_a_1", GetElementPtr(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "1"), IntConst(1, I64Type))))
+    irBuilder.addInstruction(TempValue("tmp_input_a_2", Load(Pointer(I8Type), ValueRef(Pointer(Pointer(I8Type)), "tmp_input_a_1"))))
+    irBuilder.addInstruction(TempValue("tmp_input_a_3", Call(I32Type, "parseInt",
+            irBuilder.stringConstForContent("Input a").reference(),
+            ValueRef(Pointer(I8Type), "tmp_input_a_2"))))
+    irBuilder.addInstruction(Store(ValueRef(I32Type, "tmp_input_a_3"), ValueRef(Pointer(I32Type), "input_a")))
+
+    //%tmp1 = getelementptr inbounds i8*, i8** %1, i64 1
+    //%tmp2 = load i8*, i8** %tmp1, align 8
+    //%tmp3 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst2, i32 0, i32 0), i8* %tmp2)
+    //store i32 %tmp3, i32* %input_a, align 4
+
     irBuilder.addInstruction(ReturnInt(0))
     val ir = irBuilder.asString()
     println(ir)

@@ -1,0 +1,4 @@
+@__stderrp = external global %struct.__sFILE*, align 8
+@errorMsgFormat = private unnamed_addr constant [8 x i8] c"%s: %s\0A\00", align 1
+@emptyString = private unnamed_addr constant [13 x i8] c"empty string\00", align 1
+@notANumber = private unnamed_addr constant [13 x i8] c"not a number\00", align 1
