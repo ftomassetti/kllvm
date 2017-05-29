@@ -219,11 +219,14 @@ define i32 @main(i32, i8**) {
     %input_c = alloca i8*
     %input_d = alloca i32
     %input_e = alloca i32
+    ; unnamed block
     %comparison = icmp ne i32 %0,  6
     br i1 %comparison, label %errorArgs, label %ok
+
     errorArgs:
     call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([22 x i8], [22 x i8]* @stringConst0, i32 0, i32 0))
     ret i32 1
+
     ok:
     call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([22 x i8], [22 x i8]* @stringConst1, i32 0, i32 0))
     %tmp_input_a_1 = getelementptr inbounds i8*, i8** %1, i64 1
@@ -245,10 +248,10 @@ define i32 @main(i32, i8**) {
     %tmp_input_e_2 = load i8*, i8** %tmp_input_e_1
     %tmp_input_e_3 = call i32 @parseInt(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @stringConst5, i32 0, i32 0), i8* %tmp_input_e_2)
     store i32 %tmp_input_e_3, i32* %input_e
-    %tmpValue0 = load i8*, i8** %input_c
-    call i32 (i8*, ...) @printf(i8* %tmpValue0)
     ret i32 0
+
 }
+
 
 %struct.__sFILE = type { i8*, i32, i32, i16, i16, %struct.__sbuf, i32, i8*, i32 (i8*)*, i32 (i8*, i8*, i32)*, i64 (i8*, i64, i32)*, i32 (i8*, i8*, i32)*, %struct.__sbuf, %struct.__sFILEX*, i32, [3 x i8], [1 x i8], %struct.__sbuf, i32, i64 }
 %struct.__sFILEX = type opaque
