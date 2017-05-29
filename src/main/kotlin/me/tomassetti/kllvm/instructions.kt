@@ -36,8 +36,9 @@ data class Comparison(val comparisonType: ComparisonType, val left: Value, val r
 
 }
 
-class TempValue(val name: String, val instruction: Instruction) : Instruction {
-    override fun IRCode(): String = "%$name = ${instruction.IRCode()}"
+class TempValue(val name: String, val value: Instruction) : Instruction {
+    override fun IRCode(): String = "%$name = ${value.IRCode()}"
+    fun reference() = ValueRef(name)
 }
 
 
@@ -47,11 +48,11 @@ class Store(val value: Value, val destination: Value) : Instruction {
     }
 }
 
-class GetElementPtr(val type: Type, val pointer: Value, val index: Value) : Value, Instruction {
+class GetElementPtr(val type: Type, val pointer: Value, val index: Value) : Instruction {
     override fun IRCode() = "getelementptr inbounds ${type.IRCode()}, ${pointer.IRCode()}, ${index.IRCode()}"
 }
 
-class Call(val returnType: Type, val name: String, vararg params: Value) : Value, Instruction {
+class Call(val returnType: Type, val name: String, vararg params: Value) : Instruction {
     private var _params : MutableList<Value> = LinkedList<Value>()
     init {
         params.forEach { _params.add(it) }

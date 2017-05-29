@@ -12,6 +12,7 @@ data class Label(val name: String)
 
 class Variable(val type: Type, val name: String) {
     fun allocCode() = "%$name = alloca ${type.IRCode()}"
+    fun reference() = ValueRef("$name", Pointer(type))
 }
 
 /*class IRCode {
@@ -94,6 +95,10 @@ fun BlockBuilder.saveStringInput(inputName: String, index: Int) {
     this.addInstruction(Store(ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)), ValueRef("input_$inputName", Pointer(Pointer(I8Type)))))
 }
 
+fun BlockBuilder.assignVariable(variable: Variable, value: Value) {
+    this.addInstruction(Store(value, variable.reference()))
+}
+
 fun main(args: Array<String>) {
     val moduleBuilder = ModuleBuilder()
     moduleBuilder.addImportedDefinition(ModuleBuilder::class.java.getResource("/constants.ir").readText())
@@ -120,6 +125,9 @@ fun main(args: Array<String>) {
     val inputC = okLabel.addVariable(Pointer(I8Type), "input_c")
     val inputD = okLabel.addVariable(I32Type, "input_d")
     val inputE = okLabel.addVariable(I32Type, "input_e")
+    val varF = okLabel.addVariable(I32Type, "var_f")
+
+    okLabel.assignVariable(varF, IntConst(10, type = I32Type))
 
     okLabel.addInstruction(Printf(okLabel.stringConstForContent("Number of args is OK\n").reference()))
 

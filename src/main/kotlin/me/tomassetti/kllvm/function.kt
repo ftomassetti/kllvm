@@ -9,7 +9,7 @@ class BlockBuilder(val functionBuilder: FunctionBuilder, val name: String? = nul
         instructions.add(instruction)
     }
 
-    fun tempValue(value: Instruction) : TempValue{
+    fun tempValue(value: Instruction) : TempValue {
         val tempValue = TempValue("tmpValue${functionBuilder.tmpIndex()}", value)
         addInstruction(tempValue)
         return tempValue
@@ -65,9 +65,13 @@ class FunctionBuilder(val moduleBuilder: ModuleBuilder, val name: String, val re
         return this.moduleBuilder.stringConstForContent(content)
     }
 
-    fun  createBlock(name: String): BlockBuilder {
+    fun createBlock(name: String): BlockBuilder {
         val block = BlockBuilder(this, name)
         blocks.add(block)
         return block
+    }
+
+    fun tempValue(value: Instruction) : TempValue {
+        return blocks.first.tempValue(value)
     }
 }
