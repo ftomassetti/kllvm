@@ -5,7 +5,7 @@
 char* stringConcat(char *s1, char *s2) {
 	int length = strlen(s1) + strlen(s2);
 	char* str = malloc(length + 1);
-	snprintf(str, length+1, "%s%s", s1, s1);
+	snprintf(str, length+1, "%s%s", s1, s2);
 	return str;
 }
 
@@ -26,5 +26,6 @@ char* floatToString(float value) {
 int main(int argc, char* argv[]) {
 	printf(intToString(10));
 	printf(floatToString(10.2));
+	printf(stringConcat("ciao","federico"));
 	return 0;
 }

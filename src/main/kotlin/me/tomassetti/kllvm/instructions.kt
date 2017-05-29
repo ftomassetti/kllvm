@@ -105,3 +105,13 @@ class FloatAddition(val type: Type, val left: Value, val right: Value) : Instruc
     override fun IRCode() = "fadd ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
+
+class IntSubtraction(val type: Type, val left: Value, val right: Value) : Instruction {
+    override fun IRCode() = "sub ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
+    override fun type() = type
+}
+
+class FloatSubtraction(val type: Type, val left: Value, val right: Value) : Instruction {
+    override fun IRCode() = "fsub ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
+    override fun type() = type
+}
