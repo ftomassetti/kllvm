@@ -61,33 +61,7 @@ import kotlin.collections.HashMap
     }
 }*/
 
-fun BlockBuilder.parseIntInput(inputName: String, index: Int) {
-    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_3", Call(I32Type, "parseInt",
-            this.stringConstForContent("Input $inputName").reference(),
-            ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)))))
-    this.addInstruction(Store(ValueRef("tmp_input_${inputName}_3", I32Type), ValueRef("input_$inputName", Pointer(I32Type))))
-}
 
-fun BlockBuilder.parseFloatInput(inputName: String, index: Int) {
-    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_3", Call(FloatType, "parseFloat",
-            this.stringConstForContent("Input $inputName").reference(),
-            ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)))))
-    this.addInstruction(Store(ValueRef("tmp_input_${inputName}_3", FloatType), ValueRef("input_$inputName", Pointer(FloatType))))
-}
-
-fun BlockBuilder.saveStringInput(inputName: String, index: Int) {
-    this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
-    this.addInstruction(Store(ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)), ValueRef("input_$inputName", Pointer(Pointer(I8Type)))))
-}
-
-fun BlockBuilder.assignVariable(variable: Variable, value: Value) {
-    this.addInstruction(Store(value, variable.reference()))
-}
 
 fun main(args: Array<String>) {
     val moduleBuilder = ModuleBuilder()
@@ -103,8 +77,8 @@ fun main(args: Array<String>) {
     val errorArgsLabel = main.createBlock("errorArgs")
     val okLabel = main.createBlock("ok")
 
-    main.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef("0", I32Type), IntConst(6, I32Type))))
-    main.addInstruction(IfInstruction(ValueRef("comparison", BooleanType), errorArgsLabel, okLabel))
+    main.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, LocalValueRef("0", I32Type), IntConst(6, I32Type))))
+    main.addInstruction(IfInstruction(LocalValueRef("comparison", BooleanType), errorArgsLabel, okLabel))
 
 
     errorArgsLabel.addInstruction(Printf(errorArgsLabel.stringConstForContent("Number of args is KO\n").reference()))
@@ -121,11 +95,11 @@ fun main(args: Array<String>) {
 
     okLabel.addInstruction(Printf(okLabel.stringConstForContent("Number of args is OK\n").reference()))
 
-    okLabel.parseIntInput("a", 0)
-    okLabel.parseFloatInput("b", 1)
-    okLabel.saveStringInput("c", 2)
-    okLabel.parseIntInput("d", 3)
-    okLabel.parseIntInput("e", 4)
+//    okLabel.parseIntInput("a", 0)
+//    okLabel.parseFloatInput("b", 1)
+//    okLabel.saveStringInput("c", 2)
+//    okLabel.parseIntInput("d", 3)
+//    okLabel.parseIntInput("e", 4)
 
     okLabel.addInstruction(ReturnInt(0))
     val ir = moduleBuilder.IRCode()

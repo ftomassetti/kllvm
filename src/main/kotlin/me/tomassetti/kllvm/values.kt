@@ -11,7 +11,7 @@ class StringReference(val stringConst: StringConst) : Value {
     override fun IRCode() = "getelementptr inbounds ([${stringConst.lengthInBytes()} x i8], [${stringConst.lengthInBytes()} x i8]* @${stringConst.id}, i32 0, i32 0)"
 }
 
-data class ValueRef(val name: String, val type: Type) : Value {
+data class LocalValueRef(val name: String, val type: Type) : Value {
     override fun type() = type
 
     override fun IRCode() = "%$name"

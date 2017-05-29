@@ -6,7 +6,7 @@ data class Label(val name: String)
 
 class Variable(val type: Type, val name: String) {
     fun allocCode() = "%$name = alloca ${type.IRCode()}"
-    fun reference() = ValueRef("$name", Pointer(type))
+    fun reference() = LocalValueRef("$name", Pointer(type))
 }
 
 class BlockBuilder(val functionBuilder: FunctionBuilder, val name: String? = null) {
@@ -16,25 +16,30 @@ class BlockBuilder(val functionBuilder: FunctionBuilder, val name: String? = nul
         instructions.add(instruction)
     }
 
-    fun tempValue(value: Instruction) : TempValue {
+    fun tempValue(value: Instruction): TempValue {
         val tempValue = TempValue("tmpValue${functionBuilder.tmpIndex()}", value)
         addInstruction(tempValue)
         return tempValue
     }
 
-    fun IRCode() : String {
-        return """|${if (name==null) "; unnamed block" else "$name:"}
+    fun IRCode(): String {
+        return """|${if (name == null) "; unnamed block" else "$name:"}
                   |    ${instructions.map { it.IRCode() }.joinToString(separator = "\n    ")}
                   |""".trimMargin("|")
     }
 
-    fun stringConstForContent(content: String) : StringConst {
+    fun stringConstForContent(content: String): StringConst {
         return this.functionBuilder.stringConstForContent(content)
     }
 
-    fun addVariable(type: Type, name: String) : Variable {
+    fun addVariable(type: Type, name: String): Variable {
         return this.functionBuilder.addVariable(type, name)
     }
+
+    fun assignVariable(variable: Variable, value: Value) {
+        this.addInstruction(Store(value, variable.reference()))
+    }
+
 }
 
 class FunctionBuilder(val moduleBuilder: ModuleBuilder, val name: String, val returnType: Type, val paramTypes: List<Type>) {
@@ -65,7 +70,7 @@ class FunctionBuilder(val moduleBuilder: ModuleBuilder, val name: String, val re
     }
 
     fun addInstruction(instruction: Instruction) {
-        this.blocks.first.addInstruction(instruction)
+        entryBlock().addInstruction(instruction)
     }
 
     fun stringConstForContent(content: String) : StringConst {
@@ -79,6 +84,8 @@ class FunctionBuilder(val moduleBuilder: ModuleBuilder, val name: String, val re
     }
 
     fun tempValue(value: Instruction) : TempValue {
-        return blocks.first.tempValue(value)
+        return entryBlock().tempValue(value)
     }
+
+    fun entryBlock() = blocks.first
 }

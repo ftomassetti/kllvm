@@ -13,6 +13,12 @@ class ReturnInt(val value: Int) : Instruction {
     override fun IRCode() = "ret i32 $value"
 }
 
+class Return(val value: Value) : Instruction {
+    override fun type() = null
+
+    override fun IRCode() = "ret ${value.type().IRCode()} ${value.IRCode()}"
+}
+
 class Load(val value: Value) : Instruction {
     override fun IRCode() = "load ${type().IRCode()}, ${value.type().IRCode()} ${value.IRCode()}"
     override fun type() = (value.type() as Pointer).element
@@ -40,7 +46,7 @@ data class Comparison(val comparisonType: ComparisonType, val left: Value, val r
 
 class TempValue(val name: String, val value: Instruction) : Instruction {
     override fun IRCode(): String = "%$name = ${value.IRCode()}"
-    fun reference() = ValueRef(name, value.type()!!)
+    fun reference() = LocalValueRef(name, value.type()!!)
     override fun type() = value.type()!!
 }
 
@@ -53,8 +59,8 @@ class Store(val value: Value, val destination: Value) : Instruction {
 }
 
 class GetElementPtr(val type: Type, val pointer: Value, val index: Value) : Instruction {
-    override fun IRCode() = "getelementptr inbounds ${type.IRCode()}, ${pointer.IRCode()}, ${index.IRCode()}"
-    override fun type() = type
+    override fun IRCode() = "getelementptr inbounds ${type.IRCode()}, ${pointer.type().IRCode()} ${pointer.IRCode()}, i64 ${index.IRCode()}"
+    override fun type() = Pointer(type)
 }
 
 class Call(val returnType: Type, val name: String, vararg params: Value) : Instruction {
