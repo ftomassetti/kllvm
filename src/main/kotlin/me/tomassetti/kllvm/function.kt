@@ -2,6 +2,13 @@ package me.tomassetti.kllvm
 
 import java.util.*
 
+data class Label(val name: String)
+
+class Variable(val type: Type, val name: String) {
+    fun allocCode() = "%$name = alloca ${type.IRCode()}"
+    fun reference() = ValueRef("$name", Pointer(type))
+}
+
 class BlockBuilder(val functionBuilder: FunctionBuilder, val name: String? = null) {
     private val instructions = LinkedList<Instruction>()
 

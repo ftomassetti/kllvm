@@ -5,16 +5,6 @@ import kotlin.collections.HashMap
 
 
 
-data class Label(val name: String)
-
-
-
-
-class Variable(val type: Type, val name: String) {
-    fun allocCode() = "%$name = alloca ${type.IRCode()}"
-    fun reference() = ValueRef("$name", Pointer(type))
-}
-
 /*class IRCode {
 
     private val stringConsts = HashMap<String, StringConst>()
@@ -73,7 +63,7 @@ class Variable(val type: Type, val name: String) {
 
 fun BlockBuilder.parseIntInput(inputName: String, index: Int) {
     this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
     this.addInstruction(TempValue("tmp_input_${inputName}_3", Call(I32Type, "parseInt",
             this.stringConstForContent("Input $inputName").reference(),
             ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)))))
@@ -82,7 +72,7 @@ fun BlockBuilder.parseIntInput(inputName: String, index: Int) {
 
 fun BlockBuilder.parseFloatInput(inputName: String, index: Int) {
     this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
     this.addInstruction(TempValue("tmp_input_${inputName}_3", Call(FloatType, "parseFloat",
             this.stringConstForContent("Input $inputName").reference(),
             ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)))))
@@ -91,7 +81,7 @@ fun BlockBuilder.parseFloatInput(inputName: String, index: Int) {
 
 fun BlockBuilder.saveStringInput(inputName: String, index: Int) {
     this.addInstruction(TempValue("tmp_input_${inputName}_1", GetElementPtr(Pointer(I8Type), ValueRef("1", Pointer(Pointer(I8Type))), IntConst(index + 1, I64Type))))
-    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(Pointer(I8Type), ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
+    this.addInstruction(TempValue("tmp_input_${inputName}_2", Load(ValueRef("tmp_input_${inputName}_1", Pointer(Pointer(I8Type))))))
     this.addInstruction(Store(ValueRef("tmp_input_${inputName}_2", Pointer(I8Type)), ValueRef("input_$inputName", Pointer(Pointer(I8Type)))))
 }
 
@@ -113,7 +103,7 @@ fun main(args: Array<String>) {
     val errorArgsLabel = main.createBlock("errorArgs")
     val okLabel = main.createBlock("ok")
 
-    main.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef("0", I32Type), IntConst(6))))
+    main.addInstruction(TempValue("comparison", Comparison(ComparisonType.NotEqual, ValueRef("0", I32Type), IntConst(6, I32Type))))
     main.addInstruction(IfInstruction(ValueRef("comparison", BooleanType), errorArgsLabel, okLabel))
 
 
