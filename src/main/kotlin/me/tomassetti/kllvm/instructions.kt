@@ -63,7 +63,7 @@ class Call(val returnType: Type, val name: String, vararg params: Value) : Instr
         params.forEach { _params.add(it) }
     }
     override fun IRCode(): String {
-        return "call ${returnType.IRCode()} @$name(${_params.map(Value::IRCode).joinToString(separator = ", ")})"
+        return "call ${returnType.IRCode()} @$name(${_params.map {"${it.type().IRCode()} ${it.IRCode()}"}.joinToString(separator = ", ")})"
     }
     override fun type() = returnType
 }
@@ -71,7 +71,7 @@ class Call(val returnType: Type, val name: String, vararg params: Value) : Instr
 class Printf(val value: Value) : Instruction {
 
     override fun IRCode(): String {
-        return "call i32 (i8*, ...) @printf(${value.IRCode()})"
+        return "call i32 (i8*, ...) @printf(i8* ${value.IRCode()})"
     }
     override fun type() = null
 }
