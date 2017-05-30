@@ -22,3 +22,9 @@ class IntConst(val value: Int, val type: Type) : Value {
 
     override fun IRCode(): String = "$value"
 }
+
+class FloatConst(val value: Float, val type: Type) : Value {
+    override fun type() = type
+
+    override fun IRCode(): String = "$value"
+}

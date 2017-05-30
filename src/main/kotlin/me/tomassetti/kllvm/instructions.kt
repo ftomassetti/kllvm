@@ -121,3 +121,15 @@ class FloatSubtraction(val type: Type, val left: Value, val right: Value) : Inst
     override fun IRCode() = "fsub ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
+
+class ConversionFloatToSignedInt(val value: Value, val targetType: Type) : Instruction {
+    override fun IRCode() = "fptosi ${value.type().IRCode()} ${value.IRCode()} to ${targetType.IRCode()}"
+
+    override fun type() = targetType
+}
+
+class ConversionSignedIntToFloat(val value: Value, val targetType: Type) : Instruction {
+    override fun IRCode() = "sitofp ${value.type().IRCode()} ${value.IRCode()} to ${targetType.IRCode()}"
+
+    override fun type() = targetType
+}
