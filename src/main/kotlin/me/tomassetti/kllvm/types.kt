@@ -28,3 +28,10 @@ data class Pointer(val element: Type) : Type {
     override fun IRCode() = "${element.IRCode()}*"
 }
 
+object VoidType : Type {
+    override fun IRCode() = "void"
+}
+
+class CustomType(val code: String) : Type {
+    override fun IRCode() = code
+}

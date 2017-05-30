@@ -45,6 +45,16 @@ class BlockBuilder(val functionBuilder: FunctionBuilder, val name: String? = nul
         this.addInstruction(Store(value, variable.reference()))
     }
 
+    fun label() : Label {
+        if (name == null) throw UnsupportedOperationException()
+        return Label(name)
+    }
+
+    fun load(value: Value) : Value {
+        val tempValue = tempValue(Load(value))
+        return tempValue.reference()
+    }
+
 }
 
 class FunctionBuilder(val moduleBuilder: ModuleBuilder, val name: String, val returnType: Type, val paramTypes: List<Type>) {

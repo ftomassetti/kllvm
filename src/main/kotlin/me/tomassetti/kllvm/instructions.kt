@@ -19,6 +19,12 @@ class Return(val value: Value) : Instruction {
     override fun IRCode() = "ret ${value.type().IRCode()} ${value.IRCode()}"
 }
 
+class ReturnVoid : Instruction {
+    override fun IRCode() = "ret void"
+
+    override fun type() = VoidType
+}
+
 class Load(val value: Value) : Instruction {
     override fun IRCode() = "load ${type().IRCode()}, ${value.type().IRCode()} ${value.IRCode()}"
     override fun type() = (value.type() as Pointer).element
