@@ -14,12 +14,31 @@ data class StringConst(val id: String, val content: String) {
     fun reference() = StringReference(this)
 }
 
+data class GlobalVariable(val name: String, val type: Type, val value: Any) {
+    fun IRDeclaration() : String {
+        return "@$name = global ${type.IRCode()} $value"
+    }
+    fun reference() = GlobalValueRef(name, type)
+}
 
 class ModuleBuilder {
     private val stringConsts = HashMap<String, StringConst>()
     private val importedDeclarations = LinkedList<String>()
     private val importedDefinitions = LinkedList<String>()
     private val functions = LinkedList<FunctionBuilder>()
+    private val globalVariables = LinkedList<GlobalVariable>()
+
+    fun intGlobalVariable(name: String, type: Type = I32Type, value: Int = 0) : GlobalVariable {
+        val gvar = GlobalVariable(name, type, value)
+        globalVariables.add(gvar)
+        return gvar
+    }
+
+    fun floatGlobalVariable(name: String, type: Type = FloatType, value: Float = 0.0f) : GlobalVariable {
+        val gvar = GlobalVariable(name, type, value)
+        globalVariables.add(gvar)
+        return gvar
+    }
 
     fun stringConstForContent(content: String) : StringConst {
         if (!stringConsts.containsKey(content)) {
@@ -44,6 +63,7 @@ class ModuleBuilder {
 
     fun IRCode() : String {
         return """|${stringConsts.values.map { it.IRDeclaration() }.joinToString(separator = "\n")}
+                  |${globalVariables.map { it.IRDeclaration() }.joinToString(separator = "\n")}
                   |
                   |${importedDefinitions.joinToString(separator = "\n")}
                   |
