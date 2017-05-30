@@ -34,3 +34,9 @@ class FloatConst(val value: Float, val type: Type) : Value {
 
     override fun IRCode(): String = "$value"
 }
+
+data class Null(val type: Type) : Value {
+    override fun IRCode() = "null"
+
+    override fun type() = type
+}

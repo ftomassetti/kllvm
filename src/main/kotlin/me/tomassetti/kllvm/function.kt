@@ -4,9 +4,14 @@ import java.util.*
 
 data class Label(val name: String)
 
-class Variable(val type: Type, val name: String) {
-    fun allocCode() = "%$name = alloca ${type.IRCode()}"
-    fun reference() = LocalValueRef("$name", Pointer(type))
+interface Variable {
+    fun allocCode() : String
+    fun reference() : Value
+}
+
+class LocalVariable(val name: String, val type: Type) : Variable {
+    override fun allocCode() = "%$name = alloca ${type.IRCode()}"
+    override fun reference() = LocalValueRef("$name", Pointer(type))
 }
 
 class BlockBuilder(val functionBuilder: FunctionBuilder, val name: String? = null) {
@@ -33,7 +38,7 @@ class BlockBuilder(val functionBuilder: FunctionBuilder, val name: String? = nul
     }
 
     fun addVariable(type: Type, name: String): Variable {
-        return this.functionBuilder.addVariable(type, name)
+        return this.functionBuilder.addLocalVariable(type, name)
     }
 
     fun assignVariable(variable: Variable, value: Value) {
@@ -43,7 +48,7 @@ class BlockBuilder(val functionBuilder: FunctionBuilder, val name: String? = nul
 }
 
 class FunctionBuilder(val moduleBuilder: ModuleBuilder, val name: String, val returnType: Type, val paramTypes: List<Type>) {
-    private val variables = LinkedList<Variable>()
+    private val variables = LinkedList<LocalVariable>()
     private var nextTmpIndex = 0
     private val blocks = LinkedList<BlockBuilder>()
 
@@ -55,8 +60,8 @@ class FunctionBuilder(val moduleBuilder: ModuleBuilder, val name: String, val re
         return nextTmpIndex++
     }
 
-    fun addVariable(type: Type, name: String) : Variable {
-        val variable = Variable(type, name)
+    fun addLocalVariable(type: Type, name: String) : LocalVariable {
+        val variable = LocalVariable(name, type)
         variables.add(variable)
         return variable
     }

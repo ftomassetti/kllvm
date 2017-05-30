@@ -14,11 +14,12 @@ data class StringConst(val id: String, val content: String) {
     fun reference() = StringReference(this)
 }
 
-data class GlobalVariable(val name: String, val type: Type, val value: Any) {
+data class GlobalVariable(val name: String, val type: Type, val value: Any) : Variable {
     fun IRDeclaration() : String {
         return "@$name = global ${type.IRCode()} $value"
     }
-    fun reference() = GlobalValueRef(name, type)
+    override fun reference() = GlobalValueRef(name, type)
+    override fun allocCode() = "@$name = alloca ${type.IRCode()}"
 }
 
 class ModuleBuilder {
@@ -35,6 +36,18 @@ class ModuleBuilder {
     }
 
     fun floatGlobalVariable(name: String, type: Type = FloatType, value: Float = 0.0f) : GlobalVariable {
+        val gvar = GlobalVariable(name, type, value)
+        globalVariables.add(gvar)
+        return gvar
+    }
+
+    fun stringGlobalVariable(name: String, type: Type = Pointer(I8Type), value: Any = Null(Pointer(I8Type))) : GlobalVariable {
+        val gvar = GlobalVariable(name, type, value)
+        globalVariables.add(gvar)
+        return gvar
+    }
+
+    fun globalVariable(name: String, type: Type, value: Any) : GlobalVariable {
         val gvar = GlobalVariable(name, type, value)
         globalVariables.add(gvar)
         return gvar

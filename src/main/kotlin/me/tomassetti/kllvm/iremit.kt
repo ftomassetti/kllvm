@@ -26,7 +26,7 @@ import kotlin.collections.HashMap
         return labels[name]!!
     }
 
-    fun addVariable(type: Type, name: String) : Variable {
+    fun addLocalVariable(type: Type, name: String) : Variable {
         val variable = Variable(type, name)
         variables.add(variable)
         return variable
