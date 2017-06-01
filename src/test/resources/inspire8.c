@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 	char *line = NULL;
 	size_t size;
 	int res;
-	while (1) {
+	while (i) {
 		getline(&line, &size, stdin);
 		res = recognizeEvent(line);
 		if (res != -1) {

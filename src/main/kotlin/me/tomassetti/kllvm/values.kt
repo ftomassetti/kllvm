@@ -18,7 +18,7 @@ data class LocalValueRef(val name: String, val type: Type) : Value {
 }
 
 data class GlobalValueRef(val name: String, val type: Type) : Value {
-    override fun type() = type
+    override fun type() = Pointer(type)
 
     override fun IRCode() = "@$name"
 }
