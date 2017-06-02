@@ -10,6 +10,9 @@ it to object file (or interpret it directly) using LLVM utilities.
 
 ## How to use it
 
+In the following example we show how to generate a simple application take takes two parameters, sum them and print the
+result.
+
 ```kotlin
     @test fun generateSum() {
         val EXIT_CODE_OK = 0
@@ -78,6 +81,16 @@ define i32 @main(i32, i8**) {
 
 }""", module.IRCode().trim())
     }
+```
+
+By using KLLVM is it possible to programmatically build the program and the obtain the IR code.
+This IR code can then be interpreted using the _lli_ command from LLVM.
+
+It can also be compiled into an executable by running:
+
+```
+llc -filetype=obj example.ll
+clang example.o -o example
 ```
 
 ## Status
