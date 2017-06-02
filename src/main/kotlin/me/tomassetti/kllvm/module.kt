@@ -22,10 +22,33 @@ data class GlobalVariable(val name: String, val type: Type, val value: Any) : Va
     override fun allocCode() = "@$name = alloca ${type.IRCode()}"
 }
 
+data class FunctionDeclaration(val name: String, val returnType: Type, val paramTypes: List<Type>, val varargs: Boolean = false) {
+    fun signature() : String {
+        val paramsAsString = LinkedList<String>()
+        paramsAsString.addAll(paramTypes.map(Type::IRCode))
+        if (varargs) {
+            paramsAsString.add("...")
+        }
+        return "${returnType.IRCode()} @$name(${paramsAsString.joinToString(", ")})"
+    }
+
+    fun ptrSignature() : String {
+        val paramsAsString = LinkedList<String>()
+        paramsAsString.addAll(paramTypes.map(Type::IRCode))
+        if (varargs) {
+            paramsAsString.add("...")
+        }
+        return "${returnType.IRCode()} (${paramsAsString.joinToString(", ")})*"
+    }
+
+    fun IRDeclaration() = "declare ${signature()}"
+}
+
 class ModuleBuilder {
     private val stringConsts = HashMap<String, StringConst>()
     private val importedDeclarations = LinkedList<String>()
     private val importedDefinitions = LinkedList<String>()
+    private val declarations = LinkedList<FunctionDeclaration>()
     private val functions = LinkedList<FunctionBuilder>()
     private val globalVariables = LinkedList<GlobalVariable>()
 
@@ -60,6 +83,10 @@ class ModuleBuilder {
         return stringConsts[content]!!
     }
 
+    fun addDeclaration(declaration: FunctionDeclaration) {
+        declarations.add(declaration)
+    }
+
     fun addImportedDeclaration(code: String) {
         importedDeclarations.add(code)
     }
@@ -74,11 +101,16 @@ class ModuleBuilder {
         return function
     }
 
+    fun createMainFunction() : FunctionBuilder {
+        return createFunction("main", I32Type, listOf(I32Type, Pointer(Pointer(I8Type))))
+    }
+
     fun IRCode() : String {
         return """|${stringConsts.values.map { it.IRDeclaration() }.joinToString(separator = "\n")}
                   |${globalVariables.map { it.IRDeclaration() }.joinToString(separator = "\n")}
                   |
                   |${importedDefinitions.joinToString(separator = "\n")}
+                  |${declarations.map { it.IRDeclaration() }.joinToString(separator = "\n")}
                   |
                   |${functions.map { it.IRCode() }.joinToString(separator = "\n\n")}
                   |

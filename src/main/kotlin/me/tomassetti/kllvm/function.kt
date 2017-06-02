@@ -103,4 +103,11 @@ class FunctionBuilder(val moduleBuilder: ModuleBuilder, val name: String, val re
     }
 
     fun entryBlock() = blocks.first
+
+    fun paramReference(index: Int) : Value {
+        if (index < 0 || index >= paramTypes.size) {
+            throw IllegalArgumentException("Expected an index between 0 and ${paramTypes.size - 1}, found $index")
+        }
+        return LocalValueRef("$index", paramTypes[index])
+    }
 }

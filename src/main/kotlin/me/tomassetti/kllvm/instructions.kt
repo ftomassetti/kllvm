@@ -56,7 +56,6 @@ class TempValue(val name: String, val value: Instruction) : Instruction {
     override fun type() = value.type()!!
 }
 
-
 class Store(val value: Value, val destination: Value) : Instruction {
     override fun IRCode(): String {
         return "store ${value.type().IRCode()} ${value.IRCode()}, ${destination.type().IRCode()} ${destination.IRCode()}"
@@ -80,50 +79,79 @@ class Call(val returnType: Type, val name: String, vararg params: Value) : Instr
     override fun type() = returnType
 }
 
-class Printf(val value: Value) : Instruction {
+class CallWithBitCast(val declaration: FunctionDeclaration, vararg params: Value) : Instruction {
+    private val _params = LinkedList<Value>()
+    init {
+        params.forEach { _params.add(it) }
+    }
+    override fun IRCode(): String {
+        val argTypesStrs = LinkedList<String>()
+        _params.forEach { argTypesStrs.add(it.type().IRCode()) }
+        if (declaration.varargs) {
+            argTypesStrs.add("...")
+        }
+        val adaptedSignature = "${declaration.returnType.IRCode()} (${argTypesStrs.joinToString(separator = ", ")})"
+        val paramsStr = _params.map { "${it.type().IRCode()} ${it.IRCode()}" }.joinToString(separator = ", ")
+        return "call $adaptedSignature bitcast (${declaration.ptrSignature()} @${declaration.name} to $adaptedSignature*)($paramsStr)"
+    }
+    override fun type() = declaration.returnType
+}
+
+class Printf(val stringFormat: Value, vararg params: Value) : Instruction {
+    private val _params = params
 
     override fun IRCode(): String {
-        return "call i32 (i8*, ...) @printf(i8* ${value.IRCode()})"
+        var paramsString = ""
+        _params.forEach { paramsString += ", ${it.type().IRCode()} ${it.IRCode()}" }
+        return "call i32 (i8*, ...) @printf(i8* ${stringFormat.IRCode()}$paramsString)"
     }
     override fun type() = null
 }
 
-class SignedIntDivision(val type: Type, val left: Value, val right: Value) : Instruction {
+class SignedIntDivision(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
     override fun IRCode() = "sdiv ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
 
-class FloatDivision(val type: Type, val left: Value, val right: Value) : Instruction {
+class FloatDivision(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
     override fun IRCode() = "fdiv ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
 
-class IntMultiplication(val type: Type, val left: Value, val right: Value) : Instruction {
+class IntMultiplication(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
     override fun IRCode() = "mul ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
 
-class FloatMultiplication(val type: Type, val left: Value, val right: Value) : Instruction {
+class FloatMultiplication(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
     override fun IRCode() = "fmul ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
 
-class IntAddition(val type: Type, val left: Value, val right: Value) : Instruction {
+class IntAddition(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
     override fun IRCode() = "add ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
 
-class FloatAddition(val type: Type, val left: Value, val right: Value) : Instruction {
+class FloatAddition(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
     override fun IRCode() = "fadd ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
 
-class IntSubtraction(val type: Type, val left: Value, val right: Value) : Instruction {
+class IntSubtraction(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
     override fun IRCode() = "sub ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
 
-class FloatSubtraction(val type: Type, val left: Value, val right: Value) : Instruction {
+class FloatSubtraction(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
     override fun IRCode() = "fsub ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
     override fun type() = type
 }
