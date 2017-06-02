@@ -41,7 +41,7 @@ dependencies {
 
 task version {
   doLast {
-    print "Version ${kolasuVersion}"
+    print "Version ${kllvmVersion}"
   }
 }
 
@@ -73,14 +73,14 @@ task generatePom {
       project {
         name project.name
         description "Framework to support building languages with Kotlin"
-        version kolasuVersion
+        version kllvmVersion
         packaging 'jar'
-        url 'https://github.com/ftomassetti/kolasu'
+        url 'https://github.com/ftomassetti/kllvm'
 
         scm {
-          connection 'scm:git:https://github.com/javaparser/kolasu.git'
-          developerConnection 'scm:git:git@github.com:javaparser/kolasu.git'
-          url 'https://github.com/ftomassetti/kolasu.git'
+          connection 'scm:git:https://github.com/javaparser/kllvm.git'
+          developerConnection 'scm:git:git@github.com:javaparser/kllvm.git'
+          url 'https://github.com/ftomassetti/kllvm.git'
         }
 
         licenses {
