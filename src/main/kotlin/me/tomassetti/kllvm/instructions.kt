@@ -114,6 +114,12 @@ class SignedIntDivision(val left: Value, val right: Value) : Instruction {
     override fun type() = type
 }
 
+class UnsignedIntDivision(val left: Value, val right: Value) : Instruction {
+    val type = left.type()
+    override fun IRCode() = "udiv ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
+    override fun type() = type
+}
+
 class FloatDivision(val left: Value, val right: Value) : Instruction {
     val type = left.type()
     override fun IRCode() = "fdiv ${type.IRCode()} ${left.IRCode()}, ${right.IRCode()}"
@@ -162,8 +168,20 @@ class ConversionFloatToSignedInt(val value: Value, val targetType: Type) : Instr
     override fun type() = targetType
 }
 
+class ConversionFloatToUnsignedInt(val value: Value, val targetType: Type) : Instruction {
+    override fun IRCode() = "fptoui ${value.type().IRCode()} ${value.IRCode()} to ${targetType.IRCode()}"
+
+    override fun type() = targetType
+}
+
 class ConversionSignedIntToFloat(val value: Value, val targetType: Type) : Instruction {
     override fun IRCode() = "sitofp ${value.type().IRCode()} ${value.IRCode()} to ${targetType.IRCode()}"
+
+    override fun type() = targetType
+}
+
+class ConversionUnsignedIntToFloat(val value: Value, val targetType: Type) : Instruction {
+    override fun IRCode() = "uitofp ${value.type().IRCode()} ${value.IRCode()} to ${targetType.IRCode()}"
 
     override fun type() = targetType
 }
