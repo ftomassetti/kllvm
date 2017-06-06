@@ -34,7 +34,7 @@ object FloatType : Type {
 
 object DoubleType : Type {
     override fun isFloatingPointType() = true
-    override fun IRCode() = "float"
+    override fun IRCode() = "double"
 }
 
 data class Pointer(val element: Type) : Type {
