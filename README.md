@@ -96,7 +96,7 @@ clang example.o -o example
 ## Status
 
 The library is currently used to compile to IR two Domain Specific Languages. The code is presented in the book 
-[How to create pragmatic, lightweight languages](https://leanpub.com/create_languages).
+[How to create pragmatic, lightweight languages](https://tomassetti.me/create-languages).
 
 ## Future
 
