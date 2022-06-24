@@ -101,4 +101,8 @@ The library is currently used to compile to IR two Domain Specific Languages. Th
 ## Future
 
 We plan to add new features following the requests of the community. One possible option could be to create a wrapper
-around the javacpp-presets for LLVM
+around the javacpp-presets for LLVM.   
+
+## License
+
+This project is released under the Apache License V2.0.
